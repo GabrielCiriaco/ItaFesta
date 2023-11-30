@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:itafesta/screens/tela_produto/produtos.dart';
+import 'package:provider/provider.dart';
 
 class CarrinhoPage extends StatelessWidget {
+  const CarrinhoPage({super.key});
+
+  List<Produto> getProductsFromCart(CartModel cart) {
+    List<Produto> produtos = [];
+    for (var item in cart.items) {
+      var produto = Produto(item.product['nome'], item.product['valor']);
+      produtos.add(produto);
+    }
+    return produtos;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cart = context.watch<CartModel>();
+    final produtosNoCarrinho = getProductsFromCart(cart);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Carrinho'),
+        title: const Text('Carrinho'),
         centerTitle: true,
       ),
       body: ListView.builder(
@@ -18,16 +34,14 @@ class CarrinhoPage extends StatelessWidget {
               leading: CircleAvatar(
                 radius: 30,
                 // Imagem do produto
-                backgroundImage: AssetImage(produto.imagem),
+                // backgroundImage: AssetImage(produto.imagem),
               ),
               title: Text(produto.nome),
-              subtitle: Text('R\$ ${produto.valor.toStringAsFixed(2)}'),
+              subtitle: Text('R\$ ${produto.valor}'),
               trailing: IconButton(
-                icon: Icon(Icons.delete),
+                icon: const Icon(Icons.delete),
                 onPressed: () {
-                  // Lógica para remover o produto do carrinho
-                  // produtosNoCarrinho.removeAt(index);
-                  // Você pode usar um método para remover o item do carrinho
+                  cart.removeItem(cart.items[index]);
                 },
               ),
             ),
@@ -36,7 +50,7 @@ class CarrinhoPage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(
             onPressed: () {
               // Lógica para finalizar a compra
@@ -45,7 +59,7 @@ class CarrinhoPage extends StatelessWidget {
               // Redirecionar para a home
               Navigator.pop(context);
             },
-            child: Text('Finalizar Compra'),
+            child: const Text('Finalizar Compra'),
           ),
         ),
       ),
@@ -55,7 +69,7 @@ class CarrinhoPage extends StatelessWidget {
   void _showCompraRealizada(BuildContext context) {
     // Mostrar a notificação de compra realizada com sucesso
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Compra realizada com sucesso!'),
       ),
     );
@@ -64,15 +78,15 @@ class CarrinhoPage extends StatelessWidget {
 
 class Produto {
   final String nome;
-  final double valor;
-  final String imagem;
+  final String valor;
+  // final String imagem;
 
-  Produto(this.nome, this.valor, this.imagem);
+  Produto(this.nome, this.valor);
 }
 
 // Exemplo de lista de produtos no carrinho
-List<Produto> produtosNoCarrinho = [
-  Produto('Produto 1', 20.0, 'caminho/imagem1.jpg'),
-  Produto('Produto 2', 30.0, 'caminho/imagem2.jpg'),
-  // Adicione outros produtos aqui
-];
+// List<Produto> produtosNoCarrinho = [
+//   Produto('Produto 1', 20.0, 'caminho/imagem1.jpg'),
+//   Produto('Produto 2', 30.0, 'caminho/imagem2.jpg'),
+//   // Adicione outros produtos aqui
+// ];

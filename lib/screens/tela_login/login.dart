@@ -1,34 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import '../tela_inicial/home.dart';
 
 class Login extends StatelessWidget {
-
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   Login({super.key});
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 100),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Image(image: AssetImage('lib/assets/logo.png'),
-              height: 250,),
+              const Image(
+                image: AssetImage('lib/assets/logo.png'),
+                height: 250,
+              ),
               const SizedBox(height: 20),
               TextFormField(
                 controller: usernameController,
@@ -56,11 +53,12 @@ class Login extends StatelessWidget {
                 onPressed: () {
                   String username = 'gabriel';
                   String password = '123';
-      
+
                   String enteredUsername = usernameController.text;
                   String enteredPassword = passwordController.text;
-      
-                  if (enteredUsername == username && enteredPassword == password) {
+
+                  if (enteredUsername == username &&
+                      enteredPassword == password) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => HomePage()),
@@ -70,7 +68,8 @@ class Login extends StatelessWidget {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Erro de Login'),
-                        content: const Text('Credenciais inválidas. Tente novamente.'),
+                        content: const Text(
+                            'Credenciais inválidas. Tente novamente.'),
                         actions: [
                           TextButton(
                             onPressed: () {
