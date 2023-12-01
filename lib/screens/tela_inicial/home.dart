@@ -16,9 +16,17 @@ abstract class IFornecedor {
   String get telefone;
 }
 
-Future<List<Fornecedor>> fetchFornecedores() async {
-  final response = await http.get(Uri.parse(
-      'https://adlerteste-38ca0ad7ebd1.herokuapp.com/api/v1/fornecedores'));
+Future<List<Fornecedor>> fetchFornecedores([tipo]) async {
+  var url = '';
+
+  if (tipo != null) {
+    url =
+        'https://redes-8ac53ee07f0c.herokuapp.com/api/v1/fornecedores?tipo[eq]=$tipo';
+  } else {
+    url = 'https://redes-8ac53ee07f0c.herokuapp.com/api/v1/fornecedores';
+  }
+
+  final response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
     // Se o servidor retornar um status OK, parseie o JSON
@@ -28,13 +36,12 @@ Future<List<Fornecedor>> fetchFornecedores() async {
 
     return data
         .map((fornecedor) => Fornecedor(
-              // id: fornecedor['id'],
-              // tipo: fornecedor['tipo'],
-              nome: fornecedor['email'],
-              descricao: fornecedor['endereco'],
-              // endereco: fornecedor['endereco'],
-              // telefone: fornecedor['telefone']
-            ))
+            id: fornecedor['id'],
+            tipo: fornecedor['tipo'],
+            nome: fornecedor['nome'],
+            descricao: fornecedor['descricao'],
+            endereco: fornecedor['endereco'],
+            telefone: fornecedor['telefone']))
         .toList();
   } else {
     // Se o servidor não retornar um status OK, lança um erro.
@@ -43,21 +50,20 @@ Future<List<Fornecedor>> fetchFornecedores() async {
 }
 
 class Fornecedor {
-  // final int id;
-  // final String tipo;
+  final int id;
   final String nome;
   final String descricao;
-  // final String endereco;
-  // final String telefone;
+  final String tipo;
+  final String endereco;
+  final String telefone;
 
-  Fornecedor({
-    // {required this.id,
-    // required this.tipo,
-    required this.nome,
-    required this.descricao,
-    // required this.endereco,
-    // required this.telefone
-  });
+  Fornecedor(
+      {required this.id,
+      required this.nome,
+      required this.tipo,
+      required this.descricao,
+      required this.endereco,
+      required this.telefone});
 }
 
 class HomePage extends StatefulWidget {
@@ -68,47 +74,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> fornecedores = [
-    {
-      'id': 1,
-      'tipo': 'bolos',
-      'nome': 'João Bolos',
-      'descricao': 'Os melhores bolos doces de Itajubá',
-      'endereco': 'Rua dos Bolos, 123',
-      'telefone': '123456789'
-    },
-    {
-      'id': 2,
-      'tipo': 'salgados',
-      'nome': 'Maria Salgados',
-      'descricao': 'Os melhores salgados de Itajubá',
-      'endereco': 'Rua dos Salgados, 123',
-      'telefone': '123456789'
-    },
-    {
-      'id': 3,
-      'tipo': 'doces',
-      'nome': 'José Doces',
-      'descricao': 'Os melhores doces de Itajubá',
-      'endereco': 'Rua dos Doces, 123',
-      'telefone': '123456789'
-    },
-    {
-      'id': 4,
-      'tipo': 'bebidas',
-      'nome': 'Joana Bebidas',
-      'descricao': 'As melhores bebidas de Itajubá',
-      'endereco': 'Rua das Bebidas, 123',
-      'telefone': '123456789'
-    },
-    // Adicione outros fornecedores aqui
-  ];
   late Future<List<Fornecedor>> futureFornecedores;
 
   @override
   void initState() {
     super.initState();
     futureFornecedores = fetchFornecedores();
+  }
+
+  IconData getIcon(String tipo) {
+    switch (tipo) {
+      case 'bolos':
+        return Icons.cake_rounded;
+      case 'salgados':
+        return Icons.bakery_dining_rounded;
+      case 'doces':
+        return Icons.icecream_rounded;
+      case 'bebidas':
+        return Icons.wine_bar_rounded;
+      default:
+        return Icons.store;
+    }
   }
 
   @override
@@ -135,53 +121,84 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: const Card(
-                      child: SizedBox(
-                          height: 70, child: Center(child: Text('Bolos'))),
+            SizedBox(
+                height: 70,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        // Filtra os fornecedores por tipo = bolos
+                        setState(() {
+                          futureFornecedores = fetchFornecedores();
+                        });
+                      },
+                      child: const Card(
+                        child: SizedBox(
+                            height: 70,
+                            width: 90,
+                            child: Center(child: Text('Todos'))),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navegar para a tela de salgados
-                    },
-                    child: const Card(
-                      child: SizedBox(
-                          height: 70, child: Center(child: Text('Salgados'))),
+                    GestureDetector(
+                      onTap: () {
+                        // Navegar para a tela de bebidas
+                        setState(() {
+                          futureFornecedores = fetchFornecedores('bolos');
+                        });
+                      },
+                      child: const Card(
+                        child: SizedBox(
+                            height: 70,
+                            width: 90,
+                            child: Center(child: Text('Bolos'))),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navegar para a tela de doces
-                    },
-                    child: const Card(
-                      child: SizedBox(
-                          height: 70, child: Center(child: Text('Doces'))),
+                    GestureDetector(
+                      onTap: () {
+                        // Navegar para a tela de salgados
+                        setState(() {
+                          futureFornecedores = fetchFornecedores('salgados');
+                        });
+                      },
+                      child: const Card(
+                        child: SizedBox(
+                            height: 70,
+                            width: 90,
+                            child: Center(child: Text('Salgados'))),
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Navegar para a tela de bebidas
-                    },
-                    child: const Card(
-                      child: SizedBox(
-                          height: 70, child: Center(child: Text('Bebidas'))),
+                    GestureDetector(
+                      onTap: () {
+                        // Navegar para a tela de doces
+                        setState(() {
+                          futureFornecedores = fetchFornecedores('doces');
+                        });
+                      },
+                      child: const Card(
+                        child: SizedBox(
+                            height: 70,
+                            width: 90,
+                            child: Center(child: Text('Doces'))),
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            ),
+                    GestureDetector(
+                      onTap: () {
+                        // Navegar para a tela de bebidas
+                        setState(() {
+                          futureFornecedores = fetchFornecedores('bebidas');
+                        });
+                      },
+                      child: const Card(
+                        child: SizedBox(
+                            height: 70,
+                            width: 90,
+                            child: Center(child: Text('Bebidas'))),
+                      ),
+                    ),
+                  ],
+                )),
             const SizedBox(height: 20),
             Row(
               children: [
@@ -215,60 +232,66 @@ class _HomePageState extends State<HomePage> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Text('Nenhum fornecedor disponível');
                 } else {
-                  return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        var fornecedor = snapshot.data![index];
-                        return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ProdutosPage(fornecedor),
-                                ),
-                              );
-                            },
-                            child: Card(
-                                child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(children: [
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey,
+                  return RefreshIndicator(
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          var fornecedor = snapshot.data![index];
+                          return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ProdutosPage(fornecedor),
                                   ),
-                                  child: const Icon(
-                                    Icons
-                                        .cake, // Ícone que representa o fornecedor
-                                    size: 40,
-                                    color: Colors.white,
+                                );
+                              },
+                              child: Card(
+                                  child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(children: [
+                                  Container(
+                                    width: 80,
+                                    height: 80,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.grey,
+                                    ),
+                                    child: Icon(
+                                      getIcon(fornecedor.tipo),
+                                      size: 40,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        fornecedor.nome,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          fornecedor.nome,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
                                         ),
-                                      ),
-                                      Text(fornecedor.descricao),
-                                    ],
-                                  ),
-                                )
-                              ]),
-                            )));
+                                        Text(fornecedor.descricao),
+                                      ],
+                                    ),
+                                  )
+                                ]),
+                              )));
+                        }),
+                    onRefresh: () async {
+                      setState(() {
+                        futureFornecedores = fetchFornecedores();
                       });
+                    },
+                  );
                 }
               },
             ),
