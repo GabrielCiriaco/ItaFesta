@@ -5,20 +5,22 @@ import 'package:provider/provider.dart';
 import './screens/tela_login/login.dart';
 
 void main() {
-  runApp(
+  runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => CartModel(),
-      child: rootApp(),
     ),
-  );
+    ChangeNotifierProvider(create: (context) => ClienteModel()),
+  ], child: const RootApp()));
 }
 
-class rootApp extends StatefulWidget {
+class RootApp extends StatefulWidget {
+  const RootApp({super.key});
+
   @override
-  State<rootApp> createState() => _rootAppState();
+  State<RootApp> createState() => _RootAppState();
 }
 
-class _rootAppState extends State<rootApp> {
+class _RootAppState extends State<RootApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

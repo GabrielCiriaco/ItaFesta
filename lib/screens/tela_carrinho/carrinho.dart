@@ -1,6 +1,86 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:itafesta/screens/tela_inicial/home.dart';
+import 'package:itafesta/screens/tela_login/login.dart';
 import 'package:itafesta/screens/tela_produto/produtos.dart';
 import 'package:provider/provider.dart';
+
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+Future<void> finalizaCompra(
+    BuildContext context, List<CartItem> items, int clienteId) async {
+  var ordersToSave = [];
+
+  var now = DateTime.now();
+  String formattedDate = DateFormat('dd/MM/yyyy').format(now);
+
+  for (var item in items) {
+    ordersToSave.add({
+      'data': formattedDate,
+      'quantidade': item.quantity,
+      'status': 'pedido',
+      'valor_total': item.product['valor'] * item.quantity,
+      'retirada': 'false',
+      'cliente_id': 1,
+      'produto_id': item.product['id'],
+      'fornecedor_id': item.product['fornecedorId'],
+    });
+  }
+
+  var futures = <Future>[];
+
+  for (var order in ordersToSave) {
+    futures.add(http.post(
+      Uri.parse('https://redes-8ac53ee07f0c.herokuapp.com/api/v1/pedidos'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(order),
+    ));
+  }
+
+  try {
+    await Future.wait(futures, eagerError: true);
+  } catch (e) {
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Erro ao finalizar compra!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Fecha o alerta
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Compra realizada com sucesso!'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Fecha o alerta
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
 
 class CarrinhoPage extends StatelessWidget {
   const CarrinhoPage({super.key});
@@ -31,10 +111,13 @@ class CarrinhoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartModel>();
+    final cliente = context.watch<ClienteModel>().getCliente;
     final data = getProductsFromCart(cart);
 
     final produtosNoCarrinho = data['produtos'];
     final total = data['total'];
+
+    final loading = ValueNotifier(false);
 
     return Scaffold(
         appBar: AppBar(
@@ -78,41 +161,38 @@ class CarrinhoPage extends StatelessWidget {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(255, 32, 191, 240),
+                    backgroundColor: const Color.fromARGB(255, 92, 196, 212),
                     // padding: const EdgeInsets.all(15),
                   ),
-                  onPressed: () {
-                    // Lógica para finalizar a compra
-                    // Disparar a notificação de compra realizada com sucesso
-                    _showCompraRealizada(context);
-                    // Redirecionar para a home
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    loading.value = true;
+                    await finalizaCompra(context, cart.items, cliente.id!);
+                    loading.value = false;
+                    cart.clearCart();
                   },
-                  child: const Text(
-                    'Finalizar compra',
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  child: AnimatedBuilder(
+                    animation: loading,
+                    builder: (context, child) {
+                      return loading.value
+                          ? const SizedBox(
+                              height: 20,
+                              width: 106,
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ))
+                          : const Text('Finalizar compra',
+                              style: TextStyle(color: Colors.white));
+                    },
                   ),
                 ),
               ],
             ),
-            //   child: ElevatedButton(
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.red,
-            //       // padding: const EdgeInsets.all(15),
-            //     ),
-            //     onPressed: () {
-            //       // Lógica para finalizar a compra
-            //       // Disparar a notificação de compra realizada com sucesso
-            //       _showCompraRealizada(context);
-            //       // Redirecionar para a home
-            //       Navigator.pop(context);
-            //     },
-            //     child: const Text(
-            //       'Finalizar compra',
-            //       style: TextStyle(fontSize: 20, color: Colors.white),
-            //     ),
-            //   ),
-            // ),
           ),
         ));
   }

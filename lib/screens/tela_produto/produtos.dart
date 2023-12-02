@@ -56,6 +56,12 @@ class CartModel extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  void clearCart() {
+    _items.clear();
+
+    notifyListeners();
+  }
 }
 
 Future<List<Produto>> fetchProdutosPorFornecedor(int idFornecedor) async {
