@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:itafesta/main.dart';
 import 'package:itafesta/screens/tela_registro/registro.dart';
 import 'package:provider/provider.dart';
 import '../tela_inicial/home.dart';
@@ -152,10 +153,8 @@ class Login extends StatelessWidget {
                     if (!context.mounted) return;
                     Provider.of<ClienteModel>(context, listen: false)
                         .updateCliente(cliente);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomePage()),
-                    );
+                    final store = Provider.of<AppStore>(context, listen: false);
+                    store.updateCurrentIndex(1);
                   } else {
                     if (!context.mounted) return;
                     showDialog(

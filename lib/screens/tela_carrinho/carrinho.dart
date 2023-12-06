@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:itafesta/main.dart';
 import 'package:itafesta/screens/tela_inicial/home.dart';
 import 'package:itafesta/screens/tela_login/login.dart';
 import 'package:itafesta/screens/tela_produto/produtos.dart';
@@ -21,9 +22,9 @@ Future<void> finalizaCompra(
       'data': formattedDate,
       'quantidade': item.quantity,
       'status': 'pedido',
-      'valor_total': item.product['valor'] * item.quantity,
+      'valor_total': double.parse(item.product['valor']) * item.quantity,
       'retirada': 'false',
-      'cliente_id': 1,
+      'cliente_id': clienteId,
       'produto_id': item.product['id'],
       'fornecedor_id': item.product['fornecedorId'],
     });
@@ -71,9 +72,8 @@ Future<void> finalizaCompra(
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(); // Fecha o alerta
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
+            // final store = Provider.of<AppStore>(context, listen: false);
+            // store.updateCurrentIndex(1);
           },
           child: const Text('OK'),
         ),
@@ -166,6 +166,25 @@ class CarrinhoPage extends StatelessWidget {
                   ),
                   onPressed: () async {
                     loading.value = true;
+                    if (cart.items.isEmpty) {
+                      loading.value = false;
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Erro ao finalizar compra!'),
+                          content: const Text('Carrinho vazio!'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Fecha o alerta
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                      return;
+                    }
                     await finalizaCompra(context, cart.items, cliente.id!);
                     loading.value = false;
                     cart.clearCart();

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:itafesta/main.dart';
 import 'package:itafesta/screens/tela_carrinho/carrinho.dart';
+import 'package:provider/provider.dart';
 import '../tela_produto/produtos.dart';
 import 'package:http/http.dart' as http;
 
@@ -64,6 +66,17 @@ class Fornecedor {
       required this.descricao,
       required this.endereco,
       required this.telefone});
+
+  factory Fornecedor.fromJson(Map<String, dynamic> json) {
+    return Fornecedor(
+      id: json['id'],
+      nome: json['nome'],
+      tipo: json['tipo'],
+      descricao: json['descricao'],
+      endereco: json['endereco'],
+      telefone: json['telefone'],
+    );
+  }
 }
 
 class HomePage extends StatefulWidget {
@@ -103,6 +116,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('Inicio', textAlign: TextAlign.center),
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () {
+            final store = Provider.of<AppStore>(context, listen: false);
+            store.updateCurrentIndex(0);
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
